@@ -32,3 +32,12 @@ City as city,
 State as state,
 Region as region
 from (select distinct Country, City, State, Region from raw_orders);
+
+create table if not exists dim_date as
+select
+
+create table if not exists fact_orders as
+select
+row_number() over(order by `Order ID`) as order_id,
+`Order ID` as unique_order_no,
+`Ship Mode` as ship_mode,

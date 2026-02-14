@@ -90,6 +90,13 @@ date_format(dt, '%b-%Y'),
 date_format(dt, '%Y-%m')
 from dates;
 
+create table if not exists fact_returns as
+select
+row_number() over(order by `OrderID`) as return_id,
+`OrderID` as order_id,
+Returned as returned
+from (select distinct `OrderID`, Returned from raw_returns) s;
+
 create table if not exists fact_orders as
 select
 row_number() over(order by r.`Order ID`) as order_id,
@@ -105,6 +112,7 @@ when r.`Quantity`<5 then 'Low'
 when r.`Quantity`<10 then 'Medium'
 else 'High'
 end as Pack,
+re.return_id,
 p.product_id,
 c.customer_id,
 d1.full_date as order_key,
@@ -123,4 +131,6 @@ and r.Region=l.region
 left join dim_date d1
 on r.`Order Date`=d1.full_date
 left join dim_date d2
-on r.`Ship Date`=d2.full_date;
+on r.`Ship Date`=d2.full_date
+left join fact_returns re
+on r.`Order Id`=re.order_id;

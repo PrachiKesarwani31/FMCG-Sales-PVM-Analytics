@@ -1,6 +1,17 @@
 use pvm_db;
 
-select * from raw_orders limit 10;
+alter table raw_orders
+add returned_flag varchar(8);
+
+update raw_orders
+set returned_flag = 
+case 
+when Category='Furniture' and rand()<0.15 then 'Yes'
+when Category='Office Supplies' and rand()<0.07 then 'Yes'
+when Category='Technology' and rand()<0.04 then 'Yes'
+else 'No' end;
+
+select * from raw_orders limit 50;
 select * from raw_returns limit 10;
 
 create table if not exists dim_product as
@@ -92,10 +103,10 @@ from dates;
 
 create table if not exists fact_returns as
 select
-row_number() over(order by `OrderID`) as return_id,
-`OrderID` as order_id,
-Returned as returned
-from (select distinct `OrderID`, Returned from raw_returns) s;
+row_number() over(order by `Order ID`) as return_id,
+`Order ID` as order_id,
+returned_flag as returned
+from (select distinct `Order ID`, returned_flag from raw_orders) s;
 
 create table if not exists fact_orders as
 select
@@ -134,3 +145,6 @@ left join dim_date d2
 on r.`Ship Date`=d2.full_date
 left join fact_returns re
 on r.`Order Id`=re.order_id;
+
+select * from fact_orders limit 20;
+select * from fact_returns;
